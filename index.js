@@ -18,7 +18,7 @@ $(function () {
     const _INITTHREE = INITTHREE(container, {
         clearColor: '#000',
         cameraPosition: [50, 50, 4000],
-        EnviromentLightColor: 0x404040,
+        EnviromentLightColor: 0xaaaaaa,
         needStats: false,
         needControls: true
     })
@@ -66,7 +66,7 @@ $(function () {
     }
 
     planetParams = [
-        ['sun', 200, './images/sun.jpeg', sun, sunGroup, 0, 0, 0, 0, 0, 0, 0],
+        ['sun', 200, './images/sun.png', sun, sunGroup, 0, 0, 0, 0, 0, 0, 0],
         ['mercury', 20, './images/mercury.jpeg', mercury, mercuryGroup, 2000, 0.01, 500, 250],
         ['venus', 40, './images/venus.png', venus, venusGroup, 1500, 0.01, 540, 300],
         ['earth', 40, './images/earth.png', earth, earthGroup, 3000, 0.02, 600, 400],
@@ -92,7 +92,7 @@ $(function () {
     sunLight.position.set(0, 0, 0)
 
     // 添加太阳光晕
-    initTasks.push(strokeHalo(235, 0xff0000, 0, 0, 0))
+    initTasks.push(strokeHalo(235, 0xff3300, 0, 0, 0))
 
     // 添加太阳光源
     initTasks.push(sunLight)
@@ -145,7 +145,7 @@ $(function () {
 
         planetGeometry = C('SphereGeometry', radius, 32, 32)
 
-        planetMaterial = url === 'undefined' ? C('MeshPhongMaterial') : createTexture(url, planetName === 'sun' ? 0xff0000 : '')
+        planetMaterial = url === 'undefined' ? C('MeshPhongMaterial') : createTexture(url, planetName === 'sun' ? 0xff3300 : '')
 
         planet = C('Mesh', planetGeometry, planetMaterial)
 
@@ -233,7 +233,7 @@ $(function () {
         sphereMaterial = C('MeshLambertMaterial', {
             color: color,
             transparent: true,
-            opacity: .65
+            opacity: .25
         })
 
         halo = C('Mesh', sphereGeometry, sphereMaterial)
