@@ -7,16 +7,17 @@
 $(function () {
     let container, renderer, camera, scene, orbitControls, C;
     let waitingExcutiveTasks, initTasks;
-    let sun, haloSun, earth, jupiter, mars, mercury, neptune, saturn, uranus, venus;
+    let sun, earth, jupiter, mars, mercury, neptune, saturn, uranus, venus;
     let sunGroup, earthGroup, jupiterGroup, marsGroup, mercuryGroup, neptuneGroup, saturnGroup, uranusGroup, venusGroup;
-    let starParams, stars, starGroups;
+    let planetParams, planets, planetGroups;
     let sunLight;
+    let stars, starCount, starPositions, starColors, starMinDistance, starMaxDistance, starGeometry, colorModle;
 
     container = $("#canvas-frame")[0]
 
     const _INITTHREE = INITTHREE(container, {
         clearColor: '#000',
-        cameraPosition: [50, 50, 3500],
+        cameraPosition: [50, 50, 4000],
         EnviromentLightColor: 0x404040,
         needStats: false,
         needControls: true
@@ -28,12 +29,26 @@ $(function () {
     orbitControls = _INITTHREE.orbitControls
     C = _INITTHREE.create
 
+    orbitControls.lookVertical = true
+
     renderer.shadowMapSoft = true;
 
-    waitingExcutiveTasks = []
-    initTasks = []
+    waitingExcutiveTasks = [] // 待执行的动画事件
+    initTasks = [] // 待初始化的物体
+
+    // 有关星球的变量初始化
+    planets = []
+    planetGroups = []
+
+    // 有关远处星星的变量初始化
     stars = []
-    starGroups = []
+    starCount = 20000
+    starMinDistance = 10000
+    starMaxDistance = 18000
+    colorModle = C('Color')
+    starPositions = new Float32Array(starCount * 3)
+    starColors = new Float32Array(starCount * 3)
+    starGeometry = C('BufferGeometry')
 
     function render() {
         requestAnimationFrame(render)
@@ -50,21 +65,21 @@ $(function () {
         render()
     }
 
-    starParams = [
+    planetParams = [
         ['sun', 200, './images/sun.jpeg', sun, sunGroup, 0, 0, 0, 0, 0, 0, 0],
-        ['mercury', 20, './images/mercury.jpeg', mercury, mercuryGroup, 2000, 0.01, 400, 250],
-        ['venus', 40, './images/venus.png', venus, venusGroup, 1500, 0.01, 520, 300, 520],
-        ['earth', 40, './images/earth.png', earth, earthGroup, 3000, 0.02, 700, 400],
+        ['mercury', 20, './images/mercury.jpeg', mercury, mercuryGroup, 2000, 0.01, 500, 250],
+        ['venus', 40, './images/venus.png', venus, venusGroup, 1500, 0.01, 540, 300],
+        ['earth', 40, './images/earth.png', earth, earthGroup, 3000, 0.02, 600, 400],
         ['mars', 15, './images/mars.png', mars, marsGroup, 3300, 0.015, 870, 480],
         ['jupiter', 80, './images/jupiter.png', jupiter, jupiterGroup, 4000, 0.022, 1000, 600],
-        ['saturn', 40, './images/saturn.jpeg', saturn, saturnGroup, 2500, 0.016, 1200, 754],
-        ['uranus', 40, './images/uranus.png', uranus, uranusGroup, 1700, 0.018, 1300, 890],
+        ['saturn', 40, './images/saturn.jpeg', saturn, saturnGroup, 2500, 0.06, 1200, 754],
+        ['uranus', 40, './images/uranus.png', uranus, uranusGroup, 1700, 0.018, 1220, 890],
         ['neptune', 30, './images/neptune.png', neptune, neptuneGroup, 3800, 0.03, 1400, 1000]
     ]
 
 
     // 画球体
-    starParams.forEach(item => initTasks.push(strokeStar(...item)))
+    planetParams.forEach(item => initTasks.push(strokeplanet(...item)))
 
     // 添加自转
     waitingExcutiveTasks.push(privateRotation)
@@ -77,24 +92,26 @@ $(function () {
     sunLight.position.set(0, 0, 0)
 
     // 添加太阳光晕
-    initTasks.push(strokeHalo(230, 0xff0000, 0, 0, 0))
+    initTasks.push(strokeHalo(235, 0xff0000, 0, 0, 0))
 
     // 添加太阳光源
     initTasks.push(sunLight)
 
+    // 添加星星
+    initTasks.push(strokeStar())
 
     /**
      * 星球自转
      */
     function privateRotation() {
-        stars.forEach(v => v.rotation.z += v.privateSpeed)
+        planets.forEach(v => v.rotation.z += v.privateSpeed)
     }
 
     /**
      * 星球公转
      */
     function commonRotation() {
-        stars.forEach(v => {
+        planets.forEach(v => {
 
             let p = v.ellipseVertices[v.currentIndex]
 
@@ -107,58 +124,58 @@ $(function () {
 
     /**
      * 画一个球体
-     * @param {string} starName 星球名称
+     * @param {string} planetName 星球名称
      * @param {number} radius 球半径
      * @param {string} url 纹理路径
-     * @param {Object} star 存储球的变量
-     * @param {Object} starGroup 存储球的组
+     * @param {Object} planet 存储球的变量
+     * @param {Object} planetGroup 存储球的组
      * @param {number} commonSpeed 公转速度
      * @param {number} privateSpeed 自转速度
      * @param {number} a 椭圆长轴
      * @param {number} b 椭圆短轴
      */
-    function strokeStar(starName, radius, url, star, starGroup, commonSpeed, privateSpeed, a, b) {
-        let starGeometry, starMaterial, ellipse, currentPosition;
+    function strokeplanet(planetName, radius, url, planet, planetGroup, commonSpeed, privateSpeed, a, b) {
+        let planetGeometry, planetMaterial, ellipse, currentPosition;
 
-        starGroup = C('Group')
+        planetGroup = C('Group')
 
         ellipse = createEllipse(a, b, commonSpeed)
 
-        starGroup.position.set(0, 0, 0)
+        planetGroup.position.set(0, 0, 0)
 
-        starGeometry = C('SphereGeometry', radius, 32, 32)
+        planetGeometry = C('SphereGeometry', radius, 32, 32)
 
-        starMaterial = url === 'undefined' ? C('MeshPhongMaterial') : createTexture(url, starName === 'sun' ? 0xff0000 : '')
+        planetMaterial = url === 'undefined' ? C('MeshPhongMaterial') : createTexture(url, planetName === 'sun' ? 0xff0000 : '')
 
-        star = C('Mesh', starGeometry, starMaterial)
+        planet = C('Mesh', planetGeometry, planetMaterial)
 
-        star.castShadow = true
-        star.receiveShadow = true
-        star.name = starName
+        planet.castShadow = true
+        planet.receiveShadow = true
+        planet.name = planetName
 
-        star.privateSpeed = privateSpeed
-        star.commonSpeed = commonSpeed
-        star.currentIndex = parseInt(Math.random() * commonSpeed)
-        star.ellipseVertices = ellipse.geometry.vertices
+        planet.privateSpeed = privateSpeed
+        planet.commonSpeed = commonSpeed
+        planet.currentIndex = parseInt(Math.random() * commonSpeed)
+        planet.ellipseVertices = ellipse.geometry.vertices
 
-        currentPosition = star.ellipseVertices[star.currentIndex] || {
+        currentPosition = planet.ellipseVertices[planet.currentIndex] || {
             x: 0,
             y: 0,
             z: 0
         }
-        star.position.set(currentPosition.x, currentPosition.y, currentPosition.z)
+        planet.position.set(currentPosition.x, currentPosition.y, currentPosition.z)
 
-        starGroup.add(ellipse)
-        starGroup.add(star)
+        planetGroup.add(ellipse)
+        planetGroup.add(planet)
 
-        stars.push(star)
-        starGroups.push(starGroup)
+        planets.push(planet)
+        planetGroups.push(planetGroup)
 
-        return starGroup
+        return planetGroup
     }
 
     /**
-     * 画一个纹理
+     * 创建一个纹理
      * @param {string} url 图片地址
      * @param {*} color 颜色
      */
@@ -185,7 +202,7 @@ $(function () {
     function createEllipse(a, b, pointsCount) {
         let curve, path, ellipseGeometry, ellipseMaterial, line;
 
-        curve = C('EllipseCurve', 0, 0, a, b, 0, 2 * Math.PI, true, -0.3)
+        curve = C('EllipseCurve', 0, 0, a, b, 0, 2 * Math.PI, true, -0.2)
 
         path = C('Path', curve.getPoints(pointsCount))
 
@@ -216,7 +233,7 @@ $(function () {
         sphereMaterial = C('MeshLambertMaterial', {
             color: color,
             transparent: true,
-            opacity: .55
+            opacity: .65
         })
 
         halo = C('Mesh', sphereGeometry, sphereMaterial)
@@ -225,6 +242,72 @@ $(function () {
 
         return halo
     }
+
+    /**
+     * 画星星
+     */
+    function strokeStar() {
+        let starMaterial;
+
+        starMaterial = C('PointsMaterial', {
+            size: parseInt(Math.random() * 40 + 15)
+        })
+
+        addAttrToStarGeometry()
+
+        stars = C('Points', starGeometry, starMaterial)
+
+        return stars
+    }
+
+    /**
+     * 给星星材料添加坐标属性和颜色属性
+     */
+    function addAttrToStarGeometry() {
+        let x, y, z, randomNumm, r, g, b;
+
+
+        for (let i = 0; i < starPositions.length; i += 3) {
+            r = Math.random()
+            g = Math.random()
+            b = Math.random()
+
+            colorModle.setRGB(r, g, b)
+
+            starColors[i] = colorModle.r
+            starColors[i + 1] = colorModle.g
+            starColors[i + 2] = colorModle.b
+
+            x = (parseInt(Math.random() * (starMaxDistance - starMinDistance)) + starMinDistance) * (Math.random() > 0.5 ? 1 : -1)
+
+            y = (parseInt(Math.random() * starMaxDistance)) * (Math.random() > 0.5 ? 1 : -1)
+            z = (parseInt(Math.random() * starMaxDistance)) * (Math.random() > 0.5 ? 1 : -1)
+
+            randomNum = parseInt(Math.random() * 3)
+
+            switch (randomNum) {
+                case 0:
+                    starPositions[i] = x
+                    starPositions[i + 1] = y
+                    starPositions[i + 2] = z
+                    break;
+                case 1:
+                    starPositions[i] = y
+                    starPositions[i + 1] = x
+                    starPositions[i + 2] = z
+                    break;
+                default:
+                    starPositions[i] = y
+                    starPositions[i + 1] = z
+                    starPositions[i + 2] = x
+            }
+        }
+
+
+        starGeometry.addAttribute('position', C('BufferAttribute', starPositions, 3))
+        starGeometry.addAttribute('color', C('BufferAttribute', starColors, 3))
+    }
+
 
     init()
 })
