@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        div#canvas-frame {
+            border: none;
+            cursor: pointer;
+            background-color: #EEEEEE;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            right: 0;
+            bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- canvas容器 -->
+    <div id="canvas-frame"></div>
+</body>
+<script src="./lib/jquery/jquery.3.3.1.min.js"></script>
+<script src="./lib/threeJs/three.min.js"></script>
+<script src="./lib/OrbitControlsJs/orbitControls.js"></script>
+<script src="./lib/statsJs/stats.min.js"></script>
+<script src="./lib/initThree.js"></script>
+<script src="./index.js"></script>
+</html>
