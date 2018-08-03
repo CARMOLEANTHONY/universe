@@ -129,15 +129,15 @@ $(function () {
 
     /**
      * 画一个球体
-     * @param {string} planetName 星球名称
-     * @param {number} radius 球半径
-     * @param {string} url 纹理路径
-     * @param {Object} planet 存储球的变量
-     * @param {Object} planetGroup 存储球的组
-     * @param {number} commonSpeed 公转速度
-     * @param {number} privateSpeed 自转速度
-     * @param {number} a 椭圆长轴
-     * @param {number} b 椭圆短轴
+     * @param {string} planetName - 星球名称
+     * @param {number} radius - 球半径
+     * @param {string} url - 纹理路径
+     * @param {Object} planet - 存储球的变量
+     * @param {Object} planetGroup - 存储球的组
+     * @param {number} commonSpeed - 公转速度
+     * @param {number} privateSpeed - 自转速度
+     * @param {number} a - 椭圆长轴
+     * @param {number} b - 椭圆短轴
      * 
      * @return {Object} 星球所在的组对象
      */
@@ -185,10 +185,10 @@ $(function () {
 
     /**
      * 创建一个纹理
-     * @param {string} url 图片地址
-     * @param {*} color 颜色
+     * @param {string} url - 图片地址
+     * @param {*} color - 颜色
      * 
-     * @return {Object} 图片纹理对象
+     * @return {Object} - 图片纹理对象
      */
     function createTexture(url, color) {
         let texture = C('TextureLoader').load(url)
@@ -206,9 +206,9 @@ $(function () {
 
     /**
      * 画一个椭圆
-     * @param {number} a 长轴
-     * @param {number} b 短轴
-     * @param {number} pointsCount 椭圆上点的数量
+     * @param {number} a - 长轴
+     * @param {number} b - 短轴
+     * @param {number} pointsCount - 椭圆上点的数量
      * 
      * @return {Object} 椭圆对象
      */
@@ -234,9 +234,9 @@ $(function () {
 
     /**
      * 画光晕
-     * @param {number} radius 球半径
-     * @param {*} color 颜色
-     * @param {number} x,y,z 三维坐标
+     * @param {number} radius - 球半径
+     * @param {*} color - 颜色
+     * @param {number} x,y,z - 三维坐标
      * 
      * @return {Object} 光晕，球体对象
      */
@@ -355,10 +355,10 @@ $(function () {
 
     /**
      * 创建文字
-     * @param {string} text 文字文本
-     * @param {string} fontLink 文字font链接
-     * @param {object} options 文字font参数
-     * @param {object} position 文字坐标
+     * @param {string} text - 文字文本
+     * @param {string} fontLink - 文字font链接
+     * @param {object} options - 文字font参数
+     * @param {object} position - 文字坐标
      * 
      * @return {Object} 文本对象
      */
