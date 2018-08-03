@@ -138,6 +138,8 @@ $(function () {
      * @param {number} privateSpeed 自转速度
      * @param {number} a 椭圆长轴
      * @param {number} b 椭圆短轴
+     * 
+     * @return {Object} 星球所在的组对象
      */
     function strokeplanet(planetName, radius, url, planet, planetGroup, commonSpeed, privateSpeed, a, b) {
         let planetGeometry, planetMaterial, ellipse, currentPosition;
@@ -185,6 +187,8 @@ $(function () {
      * 创建一个纹理
      * @param {string} url 图片地址
      * @param {*} color 颜色
+     * 
+     * @return {Object} 图片纹理对象
      */
     function createTexture(url, color) {
         let texture = C('TextureLoader').load(url)
@@ -205,6 +209,8 @@ $(function () {
      * @param {number} a 长轴
      * @param {number} b 短轴
      * @param {number} pointsCount 椭圆上点的数量
+     * 
+     * @return {Object} 椭圆对象
      */
 
     function createEllipse(a, b, pointsCount) {
@@ -231,6 +237,8 @@ $(function () {
      * @param {number} radius 球半径
      * @param {*} color 颜色
      * @param {number} x,y,z 三维坐标
+     * 
+     * @return {Object} 光晕，球体对象
      */
     function strokeHalo(radius, color, ...position) {
         let sphereGeometry, sphereMaterial, halo;
@@ -256,6 +264,7 @@ $(function () {
 
     /**
      * 画星星
+     * @return {Object} 星星集合的对象
      */
     function strokeStar() {
         let starMaterial;
@@ -350,6 +359,8 @@ $(function () {
      * @param {string} fontLink 文字font链接
      * @param {object} options 文字font参数
      * @param {object} position 文字坐标
+     * 
+     * @return {Object} 文本对象
      */
 
     async function createText(text, fontLink, options = {}, ...position) {
