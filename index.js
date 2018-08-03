@@ -17,7 +17,7 @@ $(function () {
 
     const _INITTHREE = INITTHREE(container, {
         clearColor: '#000',
-        cameraPosition: [50, 50, 4000],
+        cameraPosition: [50, -50, 4000],
         EnviromentLightColor: 0xaaaaaa,
         needStats: false,
         needControls: true
@@ -42,9 +42,9 @@ $(function () {
 
     // 有关远处星星的变量初始化
     stars = []
-    starCount = 20000
+    starCount = 40000
     starMinDistance = 10000
-    starMaxDistance = 18000
+    starMaxDistance = 14000
     colorModle = C('Color')
     starPositions = new Float32Array(starCount * 3)
     starColors = new Float32Array(starCount * 3)
@@ -71,10 +71,10 @@ $(function () {
         ['venus', 40, './images/venus.png', venus, venusGroup, 1500, 0.01, 540, 300],
         ['earth', 40, './images/earth.png', earth, earthGroup, 3000, 0.02, 600, 400],
         ['mars', 15, './images/mars.png', mars, marsGroup, 3300, 0.015, 870, 480],
-        ['jupiter', 80, './images/jupiter.png', jupiter, jupiterGroup, 4000, 0.022, 1000, 600],
-        ['saturn', 40, './images/saturn.jpeg', saturn, saturnGroup, 2500, 0.06, 1200, 754],
-        ['uranus', 40, './images/uranus.png', uranus, uranusGroup, 1700, 0.018, 1220, 890],
-        ['neptune', 30, './images/neptune.png', neptune, neptuneGroup, 3800, 0.03, 1400, 1000]
+        ['jupiter', 80, './images/jupiter.png', jupiter, jupiterGroup, 4000, 0.022, 1000, 550],
+        ['saturn', 40, './images/saturn.jpeg', saturn, saturnGroup, 2500, 0.06, 1150, 654],
+        ['uranus', 40, './images/uranus.png', uranus, uranusGroup, 1700, 0.018, 1220, 720],
+        ['neptune', 30, './images/neptune.png', neptune, neptuneGroup, 3800, 0.03, 1400, 800]
     ]
 
 
@@ -92,13 +92,18 @@ $(function () {
     sunLight.position.set(0, 0, 0)
 
     // 添加太阳光晕
-    initTasks.push(strokeHalo(235, 0xff3300, 0, 0, 0))
+    initTasks.push(strokeHalo(235, 0xff6600, 0, 0, 0))
 
     // 添加太阳光源
     initTasks.push(sunLight)
 
     // 添加星星
     initTasks.push(strokeStar())
+
+    // 添加文字 ==> 失败
+    createText('CARMOLEANTHONY', './lib/fonts/gentilis_bold.typeface.json', {
+        size: 100
+    }, 500, 100, 200).then(res => initTasks.push(res))
 
     /**
      * 星球自转
@@ -145,14 +150,13 @@ $(function () {
 
         planetGeometry = C('SphereGeometry', radius, 32, 32)
 
-        planetMaterial = url === 'undefined' ? C('MeshPhongMaterial') : createTexture(url, planetName === 'sun' ? 0xff3300 : '')
+        planetMaterial = url === 'undefined' ? C('MeshPhongMaterial') : createTexture(url = url, color = planetName === 'sun' ? 0xff3300 : '')
 
         planet = C('Mesh', planetGeometry, planetMaterial)
 
         planet.castShadow = true
         planet.receiveShadow = true
         planet.name = planetName
-
         planet.privateSpeed = privateSpeed
         planet.commonSpeed = commonSpeed
         planet.currentIndex = parseInt(Math.random() * commonSpeed)
@@ -163,12 +167,15 @@ $(function () {
             y: 0,
             z: 0
         }
+
         planet.position.set(currentPosition.x, currentPosition.y, currentPosition.z)
 
         planetGroup.add(ellipse)
+
         planetGroup.add(planet)
 
         planets.push(planet)
+
         planetGroups.push(planetGroup)
 
         return planetGroup
@@ -184,13 +191,14 @@ $(function () {
 
         color = color === 'undefined' ? 0xffffff : color
 
-        let material = C('MeshLambertMaterial', {
+        let material = C('MeshPhongMaterial', {
             map: texture,
             emissive: color
         });
 
         return material
     }
+
 
     /**
      * 画一个椭圆
@@ -202,7 +210,7 @@ $(function () {
     function createEllipse(a, b, pointsCount) {
         let curve, path, ellipseGeometry, ellipseMaterial, line;
 
-        curve = C('EllipseCurve', 0, 0, a, b, 0, 2 * Math.PI, true, -0.2)
+        curve = C('EllipseCurve', 0, 0, a, b, 0, 2 * Math.PI, true, -0.05 * Math.PI)
 
         path = C('Path', curve.getPoints(pointsCount))
 
@@ -214,8 +222,6 @@ $(function () {
         })
 
         line = C('Line', ellipseGeometry, ellipseMaterial)
-
-        line.position.y = parseInt(Math.random() * 20 - 10)
 
         return line
     }
@@ -230,7 +236,8 @@ $(function () {
         let sphereGeometry, sphereMaterial, halo;
 
         sphereGeometry = C('SphereGeometry', radius, 32, 32)
-        sphereMaterial = C('MeshLambertMaterial', {
+
+        sphereMaterial = C('MeshPhongMaterial', {
             color: color,
             transparent: true,
             opacity: .25
@@ -238,7 +245,11 @@ $(function () {
 
         halo = C('Mesh', sphereGeometry, sphereMaterial)
 
+        position = position == 'undefined' ? [0, 0, 0] : position
+
         halo.position.set(...position)
+
+        halo.name = 'halo'
 
         return halo
     }
@@ -250,12 +261,15 @@ $(function () {
         let starMaterial;
 
         starMaterial = C('PointsMaterial', {
-            size: parseInt(Math.random() * 40 + 15)
+            size: parseInt(Math.random() * 40 + 15),
+            vertexColors: true // 是否使用顶点颜色
         })
 
         addAttrToStarGeometry()
 
         stars = C('Points', starGeometry, starMaterial)
+
+        stars.name = 'stars'
 
         return stars
     }
@@ -264,13 +278,18 @@ $(function () {
      * 给星星材料添加坐标属性和颜色属性
      */
     function addAttrToStarGeometry() {
-        let x, y, z, randomNumm, r, g, b;
+        let x, y, z, randomNum, r, g, b, isStarRiver, StarRiverCount, currentCount;
 
+        isStarRiver = false
+
+        StarRiverCount = parseInt(Math.random() * 500 + 300)
+
+        currentCount = 0
 
         for (let i = 0; i < starPositions.length; i += 3) {
-            r = Math.random()
-            g = Math.random()
-            b = Math.random()
+            r = (Math.random() + 1) / 2
+            g = (Math.random() + 1) / 2
+            b = (Math.random() + 1) / 2
 
             colorModle.setRGB(r, g, b)
 
@@ -278,36 +297,103 @@ $(function () {
             starColors[i + 1] = colorModle.g
             starColors[i + 2] = colorModle.b
 
-            x = (parseInt(Math.random() * (starMaxDistance - starMinDistance)) + starMinDistance) * (Math.random() > 0.5 ? 1 : -1)
+            if (!isStarRiver && Math.random() < 0.99) {
 
-            y = (parseInt(Math.random() * starMaxDistance)) * (Math.random() > 0.5 ? 1 : -1)
-            z = (parseInt(Math.random() * starMaxDistance)) * (Math.random() > 0.5 ? 1 : -1)
+                x = (parseInt(Math.random() * (starMaxDistance - starMinDistance)) + starMinDistance) * (Math.random() > 0.5 ? 1 : -1)
+                y = (parseInt(Math.random() * starMaxDistance)) * (Math.random() > 0.5 ? 1 : -1)
+                z = (parseInt(Math.random() * starMaxDistance)) * (Math.random() > 0.5 ? 1 : -1)
 
-            randomNum = parseInt(Math.random() * 3)
+                randomNum = parseInt(Math.random() * 3)
 
-            switch (randomNum) {
-                case 0:
-                    starPositions[i] = x
-                    starPositions[i + 1] = y
-                    starPositions[i + 2] = z
-                    break;
-                case 1:
-                    starPositions[i] = y
-                    starPositions[i + 1] = x
-                    starPositions[i + 2] = z
-                    break;
-                default:
-                    starPositions[i] = y
-                    starPositions[i + 1] = z
-                    starPositions[i + 2] = x
+                switch (randomNum) {
+                    case 0:
+                        starPositions[i] = x
+                        starPositions[i + 1] = y
+                        starPositions[i + 2] = z
+                        break;
+                    case 1:
+                        starPositions[i] = y
+                        starPositions[i + 1] = x
+                        starPositions[i + 2] = z
+                        break;
+                    default:
+                        starPositions[i] = y
+                        starPositions[i + 1] = z
+                        starPositions[i + 2] = x
+                }
+            } else {
+
+                isStarRiver = true
+
+                starPositions[i] = starPositions[i - 3] + Math.random() * 400 - 200
+                starPositions[i + 1] = starPositions[i - 2] + Math.random() * 400 - 200
+                starPositions[i + 2] = starPositions[i - 1] + Math.random() * 400 - 200
+
+                if (++currentCount > StarRiverCount) {
+
+                    isStarRiver = false
+
+                    currentCount = 0
+
+                    StarRiverCount = parseInt(Math.random() * 1000 + 300)
+                }
             }
         }
-
 
         starGeometry.addAttribute('position', C('BufferAttribute', starPositions, 3))
         starGeometry.addAttribute('color', C('BufferAttribute', starColors, 3))
     }
 
+    /**
+     * 创建文字
+     * @param {string} text 文字文本
+     * @param {string} fontLink 文字font链接
+     * @param {object} options 文字font参数
+     * @param {object} position 文字坐标
+     */
+
+    async function createText(text, fontLink, options = {}, ...position) {
+        let textFont, textG, textM, textMesh;
+
+        textFont = await new Promise((resolve, reject) => {
+
+            C('FontLoader').load(fontLink,
+                res => resolve(res),
+                (xhr) => {
+                    console.log(`${xhr.loaded / xhr.total * 100}% loaded`);
+                },
+                () => reject(new Error(`${fontLink} is not a correct link.`)))
+
+        })
+
+        textG = C('TextGeometry', text, {
+            font: textFont,
+            size: 80,
+            height: 5,
+            curveSegments: 12,
+            bevelEnabled: true,
+            bevelThickness: 10,
+            bevelSize: 8,
+            bevelSegments: 5,
+            ...options
+        })
+
+        textM = C('MeshNormalMaterial', {
+            flatShading: true,
+            transparent: true,
+            opacity: 0.8
+        })
+
+        textMesh = C('Mesh', textG, textM)
+
+        position = position || [0, 0, 0]
+
+        textMesh.position.set(...position)
+
+        textMesh.name = `text: ${text}`
+
+        return textMesh
+    }
 
     init()
 })
